@@ -52,20 +52,20 @@ class BaseState(TypedDict):
 # ============ Subgraph States ============
 
 class DataCollectionState(TypedDict):
-    """State for data collection subgraph"""
+    """State for data collection subgraph (PT Center)"""
     # Input
     query_params: Dict[str, Any]  # Parameters for data collection
     target_databases: List[str]  # Which databases to query
 
     # Collection results
-    performance_data: Annotated[List[Dict[str, Any]], add]
-    target_data: Annotated[List[Dict[str, Any]], add]
-    client_data: Annotated[List[Dict[str, Any]], add]
+    member_data: Annotated[List[Dict[str, Any]], add]  # Member information
+    session_data: Annotated[List[Dict[str, Any]], add]  # PT session records
+    workout_data: Annotated[List[Dict[str, Any]], add]  # Workout logs
 
     # Aggregated data
-    aggregated_performance: Annotated[Dict[str, Any], merge_dicts]
-    aggregated_target: Annotated[Dict[str, Any], merge_dicts]
-    aggregated_client: Annotated[Dict[str, Any], merge_dicts]
+    aggregated_member: Annotated[Dict[str, Any], merge_dicts]  # Member stats
+    aggregated_session: Annotated[Dict[str, Any], merge_dicts]  # Session stats
+    aggregated_workout: Annotated[Dict[str, Any], merge_dicts]  # Workout stats
 
     # Status
     collection_status: str
@@ -73,21 +73,21 @@ class DataCollectionState(TypedDict):
 
 
 class AnalysisState(TypedDict):
-    """State for analysis subgraph"""
+    """State for analysis subgraph (PT Center)"""
     # Input data (from data collection)
-    performance_data: List[Dict[str, Any]]
-    target_data: List[Dict[str, Any]]
-    client_data: List[Dict[str, Any]]
+    member_data: List[Dict[str, Any]]  # Member profiles
+    session_data: List[Dict[str, Any]]  # Session records
+    workout_data: List[Dict[str, Any]]  # Workout logs
 
     # Analysis parameters
-    analysis_type: str  # basic, trend, comparative, comprehensive
+    analysis_type: str  # basic, progress, performance, comprehensive
     analysis_params: Dict[str, Any]
 
     # Analysis results
-    basic_metrics: Annotated[Dict[str, Any], merge_dicts]
-    trend_analysis: Annotated[Dict[str, Any], merge_dicts]
-    comparative_analysis: Annotated[Dict[str, Any], merge_dicts]
-    insights: Annotated[List[str], append_unique]
+    basic_metrics: Annotated[Dict[str, Any], merge_dicts]  # Basic fitness metrics
+    progress_analysis: Annotated[Dict[str, Any], merge_dicts]  # Progress tracking
+    performance_analysis: Annotated[Dict[str, Any], merge_dicts]  # Performance metrics
+    insights: Annotated[List[str], append_unique]  # Training insights
 
     # Final report
     analysis_report: Optional[Dict[str, Any]]
@@ -97,21 +97,21 @@ class AnalysisState(TypedDict):
     errors: Annotated[List[str], add]
 
 
-# ============ Real Estate State (Active) ============
+# ============ PT Session State (Active) ============
 
-class RealEstateState(BaseState):
+class PTSessionState(BaseState):
     """
-    Real Estate Analysis Agent State
-    Workflow data that changes during execution for apartment value analysis
+    PT Session Management Agent State
+    Workflow data that changes during execution for PT session management and member interaction
     """
 
     # === Input (overwrite) ===
-    query: str  # User query (e.g., "강남역 근처 30평대 아파트 매매 시세 알려줘")
-    region: Optional[str]  # Region name (e.g., "서울특별시 강남구")
-    property_type: Optional[str]  # Property type (e.g., "아파트", "오피스텔", "빌라")
-    deal_type: Optional[str]  # Deal type (e.g., "매매", "전세", "월세")
-    price_range: Optional[Dict[str, Any]]  # Price range (e.g., {"min": 100000, "max": 150000})
-    size_range: Optional[Dict[str, Any]]  # Size range in pyeong (e.g., {"min": 30, "max": 40})
+    query: str  # User query (e.g., "오늘 PT 일정 알려줘", "회원 운동 기록 조회")
+    member_id: Optional[str]  # Member identifier
+    trainer_id: Optional[str]  # Trainer identifier
+    session_type: Optional[str]  # Session type (e.g., "개인PT", "그룹PT", "상담")
+    date_range: Optional[Dict[str, Any]]  # Date range (e.g., {"start": "2025-09-01", "end": "2025-09-30"})
+    workout_type: Optional[str]  # Workout type (e.g., "근력", "유산소", "재활", "다이어트")
 
     # === Planning (overwrite) ===
     execution_plan: Optional[Dict[str, Any]]  # LLM generated plan
@@ -121,7 +121,7 @@ class RealEstateState(BaseState):
     generated_sql: Optional[str]  # Generated SQL
 
     # === Data Collection (accumulate) ===
-    listing_results: Annotated[List[Dict[str, Any]], add]  # Property listing results
+    session_results: Annotated[List[Dict[str, Any]], add]  # PT session results
 
     # === Subgraph Results (merge) ===
     data_collection_result: Optional[Dict[str, Any]]  # From DataCollectionSubgraph
@@ -134,18 +134,18 @@ class RealEstateState(BaseState):
     statistics: Annotated[Dict[str, float], merge_dicts]  # Statistical summaries
 
     # === Analysis (unique accumulate) ===
-    insights: Annotated[List[str], append_unique]  # Property insights and characteristics
-    investment_points: Annotated[List[str], append_unique]  # Investment points and recommendations
+    insights: Annotated[List[str], append_unique]  # Workout insights and progress
+    recommendations: Annotated[List[str], append_unique]  # Training recommendations
 
     # === Output (overwrite) ===
     briefing: Optional[str]  # Summary briefing for user
-    final_report: Optional[Dict[str, Any]]  # Complete analysis report
+    final_report: Optional[Dict[str, Any]]  # Complete session report
 
 
 class SupervisorState(BaseState):
     """
     Supervisor State for Main Orchestrator
-    Manages intent analysis → planning → execution → evaluation workflow
+    Manages intent analysis → planning → execution → evaluation workflow for PT Center
     """
 
     # === Input (overwrite) ===
@@ -154,12 +154,12 @@ class SupervisorState(BaseState):
     # === Intent Analysis (overwrite) ===
     intent: Optional[Dict[str, Any]]  # Classified intent with extracted entities
     # Example: {
-    #   "type": "search" | "analysis" | "comparison" | "recommendation",
-    #   "region": "서울특별시 강남구",
-    #   "property_type": "아파트",
-    #   "deal_type": "매매",
-    #   "price_range": {"min": 100000, "max": 150000},
-    #   "size_range": {"min": 30, "max": 40}
+    #   "type": "schedule" | "workout_log" | "member_info" | "progress_analysis" | "booking",
+    #   "member_id": "M12345",
+    #   "trainer_id": "T001",
+    #   "session_type": "개인PT",
+    #   "date_range": {"start": "2025-09-01", "end": "2025-09-30"},
+    #   "workout_type": "근력"
     # }
 
     # === Planning (overwrite) ===
@@ -167,16 +167,16 @@ class SupervisorState(BaseState):
     # Example: {
     #   "strategy": "sequential" | "parallel" | "dag" | "swarm",
     #   "agents": [
-    #     {"name": "property_search", "order": 1, "params": {...}},
-    #     {"name": "market_analysis", "order": 2, "params": {...}}
+    #     {"name": "schedule_manager", "order": 1, "params": {...}},
+    #     {"name": "workout_analyzer", "order": 2, "params": {...}}
     #   ]
     # }
 
     # === Agent Execution (merge) ===
     agent_results: Annotated[Dict[str, Any], merge_dicts]  # Results from executed agents
     # Example: {
-    #   "property_search": {"status": "success", "data": [...]},
-    #   "market_analysis": {"status": "success", "insights": [...]}
+    #   "schedule_manager": {"status": "success", "data": [...]},
+    #   "workout_analyzer": {"status": "success", "insights": [...]}
     # }
 
     # === Evaluation (overwrite) ===
@@ -186,25 +186,25 @@ class SupervisorState(BaseState):
     #   "completeness": True,
     #   "needs_retry": False,
     #   "retry_agents": [],
-    #   "feedback": "All data collected successfully"
+    #   "feedback": "All session data collected successfully"
     # }
 
     # === Output (overwrite) ===
     final_output: Optional[Dict[str, Any]]  # Final formatted response
     # Example: {
-    #   "answer": "강남구 아파트 매매 시세는...",
-    #   "listings": [...],
+    #   "answer": "오늘 PT 일정은...",
+    #   "sessions": [...],
     #   "insights": [...],
-    #   "metadata": {"total_listings": 10, "avg_price": 150000}
+    #   "metadata": {"total_sessions": 5, "completed": 3}
     # }
 
 
 class DocumentState(BaseState):
     """
-    State for document generation workflows
+    State for document generation workflows (PT Center)
     """
     # Document specific fields
-    doc_type: str  # Type of document (e.g., '부동산??', '계약서??')
+    doc_type: str  # Type of document (e.g., '운동처방전', '회원관리서', '진행보고서')
     doc_format: str  # Output format (markdown, html, text, word)
     title: str  # Document title
     input_data: Dict[str, Any]  # Input data for document generation
@@ -231,9 +231,9 @@ class DocumentState(BaseState):
 
 # ============ State Factory Functions ============
 
-def create_real_estate_initial_state(**kwargs) -> Dict[str, Any]:
+def create_pt_session_initial_state(**kwargs) -> Dict[str, Any]:
     """
-    Create initial RealEstateState with defaults
+    Create initial PTSessionState with defaults
 
     Args:
         **kwargs: Initial field values
@@ -250,11 +250,11 @@ def create_real_estate_initial_state(**kwargs) -> Dict[str, Any]:
 
         # Input
         "query": kwargs.get("query", ""),
-        "region": kwargs.get("region"),
-        "property_type": kwargs.get("property_type", "아파트"),
-        "deal_type": kwargs.get("deal_type", "매매"),
-        "price_range": kwargs.get("price_range"),
-        "size_range": kwargs.get("size_range"),
+        "member_id": kwargs.get("member_id"),
+        "trainer_id": kwargs.get("trainer_id"),
+        "session_type": kwargs.get("session_type", "개인PT"),
+        "date_range": kwargs.get("date_range"),
+        "workout_type": kwargs.get("workout_type"),
 
         # Planning
         "execution_plan": None,
@@ -264,7 +264,7 @@ def create_real_estate_initial_state(**kwargs) -> Dict[str, Any]:
         "generated_sql": None,
 
         # Data Collection
-        "listing_results": [],
+        "session_results": [],
 
         # Subgraph Results
         "data_collection_result": None,
@@ -278,7 +278,7 @@ def create_real_estate_initial_state(**kwargs) -> Dict[str, Any]:
 
         # Analysis
         "insights": [],
-        "investment_points": [],
+        "recommendations": [],
 
         # Output
         "briefing": None,

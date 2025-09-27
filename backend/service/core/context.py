@@ -40,12 +40,12 @@ class AgentContext(TypedDict):
 class SubgraphContext(TypedDict):
     """
     Context for subgraphs (filtered subset of AgentContext)
-    Used when invoking DataCollectionSubgraph, AnalysisSubgraph, etc.
+    Used when invoking DataCollectionSubgraph, AnalysisSubgraph, etc. (PT Center)
     """
 
     # ========== Required (from parent) ==========
-    user_id: str
-    session_id: str
+    user_id: str  # Member or trainer ID
+    session_id: str  # PT session or conversation session ID
 
     # ========== Optional (from parent) ==========
     request_id: Optional[str]
@@ -53,13 +53,13 @@ class SubgraphContext(TypedDict):
     debug_mode: Optional[bool]
 
     # ========== Subgraph Identification ==========
-    parent_agent: str           # Name of parent agent
-    subgraph_name: str         # Name of current subgraph
+    parent_agent: str  # Name of parent agent
+    subgraph_name: str  # Name of current subgraph
 
     # ========== Subgraph Parameters ==========
     suggested_tools: Optional[List[str]]  # Tool hints for subgraph
-    analysis_depth: Optional[str]         # shallow, normal, deep
-    db_paths: Optional[Dict[str, str]]   # Database paths for data collection
+    analysis_depth: Optional[str]  # shallow, normal, deep
+    db_paths: Optional[Dict[str, str]]  # Database paths for PT data collection
 
 
 # ============ Context Factory Functions ============

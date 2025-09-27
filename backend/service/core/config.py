@@ -30,21 +30,24 @@ class Config:
 
     # ============ Database Paths (Active) ============
     DATABASES = {
-        "real_estate_listings": DB_DIR / "real_estate" / "listings.db",      # Property listings DB
-        "regional_info": DB_DIR / "real_estate" / "regional_stats.db",       # Regional statistics DB
-        "user_profiles": DB_DIR / "user" / "profiles.db",                    # User profiles DB
-        "user_data": DB_DIR / "user" / "data.db",                            # User data DB
+        "members": DB_DIR / "pt_center" / "members.db",           # Member profiles DB
+        "sessions": DB_DIR / "pt_center" / "sessions.db",         # PT session records DB
+        "workouts": DB_DIR / "pt_center" / "workouts.db",         # Workout logs DB
+        "trainers": DB_DIR / "pt_center" / "trainers.db",         # Trainer information DB
+        "schedules": DB_DIR / "pt_center" / "schedules.db",       # Schedule management DB
     }
 
     # ============ Model Settings (Active) ============
     DEFAULT_MODELS = {
-        "intent": "gpt-4o-mini",      # Fast for intent analysis
-        "planning": "gpt-4o",          # Accurate for planning
+        "intent": "gpt-4o-mini",      # Fast for intent analysis (PT queries)
+        "planning": "gpt-4o",          # Accurate for session planning
+        "analysis": "gpt-4o",          # For workout/progress analysis
     }
 
     DEFAULT_MODEL_PARAMS = {
         "intent": {"temperature": 0.3, "max_tokens": 500},
         "planning": {"temperature": 0.3, "max_tokens": 2000},
+        "analysis": {"temperature": 0.2, "max_tokens": 1500},
     }
 
     # ============ System Timeouts (Active) ============
